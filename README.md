@@ -1,6 +1,6 @@
 # verb-repo-data [![NPM version](https://img.shields.io/npm/v/verb-repo-data.svg?style=flat)](https://www.npmjs.com/package/verb-repo-data) [![NPM downloads](https://img.shields.io/npm/dm/verb-repo-data.svg?style=flat)](https://npmjs.org/package/verb-repo-data) [![Build Status](https://img.shields.io/travis/jonschlinkert/verb-repo-data.svg?style=flat)](https://travis-ci.org/jonschlinkert/verb-repo-data)
 
-> Verb plugin that adds commonly needed data to the context for rendering templates.
+> Verb plugin that repository and package.json data to the context for rendering templates.
 
 ## Install
 
