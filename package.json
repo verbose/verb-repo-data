@@ -1,7 +1,7 @@
 {
   "name": "verb-repo-data",
   "description": "Verb plugin that repository and package.json data to the context for rendering templates.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/jonschlinkert/verb-repo-data",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": "jonschlinkert/verb-repo-data",
