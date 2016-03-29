@@ -2,25 +2,31 @@
 
 var gulp = require('gulp');
 var mocha = require('gulp-mocha');
+var unused = require('gulp-unused');
 var istanbul = require('gulp-istanbul');
 var eslint = require('gulp-eslint');
 
 gulp.task('coverage', function() {
-  return gulp.src('index.js')
-    .pipe(istanbul({includeUntested: true}))
+  return gulp.src(['index.js', 'utils.js'])
+    .pipe(istanbul())
     .pipe(istanbul.hookRequire());
 });
 
-gulp.task('mocha', ['coverage'], function() {
+gulp.task('test', ['coverage'], function() {
   return gulp.src('test/*.js')
-    .pipe(mocha())
+    .pipe(mocha({reporter: 'spec'}))
     .pipe(istanbul.writeReports());
 });
 
-gulp.task('eslint', function() {
+gulp.task('lint', function() {
   return gulp.src(['*.js', 'test/*.js'])
     .pipe(eslint())
     .pipe(eslint.format());
 });
 
-gulp.task('default', ['mocha', 'eslint']);
+gulp.task('unused', function() {
+  return gulp.src(['index.js', 'utils.js'])
+    .pipe(unused({keys: Object.keys(require('./utils.js'))}))
+});
+
+gulp.task('default', ['test', 'lint']);

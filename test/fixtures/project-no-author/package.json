@@ -3,9 +3,8 @@
   "private": true,
   "description": "",
   "version": "0.0.0",
-  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": {
-    "url": "https://github.com/doowb/test-project.git"
+    "url": "https://github.com/jonschlinkert/test-project.git"
   },
   "license": "MIT"
 }

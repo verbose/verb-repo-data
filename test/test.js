@@ -30,7 +30,6 @@ describe('verb-data', function() {
   beforeEach(function() {
     app = verb();
     cache = app.store.data;
-    console.log(cache);
     app.store.data = {};
     app.store.save();
   });
@@ -78,61 +77,247 @@ describe('verb-data', function() {
       app.use(data);
 
       app.generator('foo', function(foo) {
+        assert(foo.cache.data.runner);
+        assert.equal(foo.cache.data.runner.name, 'verb');
         cb();
       });
     });
 
     it('should add data from a generator to a sub-generator', function(cb) {
-      app.use(data);
-
       app.generator('foo', function(foo) {
-        cb();
+        foo.use(data);
+
+        foo.generator('bar', function(bar) {
+          assert(bar.cache.data.runner);
+          assert.equal(bar.cache.data.runner.name, 'verb');
+          cb();
+        });
       });
     });
 
     it('should add data to a sub-generator', function(cb) {
       app.generator('foo', function(foo) {
-        foo.use(data);
-
-        cb();
+        foo.generator('bar', function(bar) {
+          bar.use(data);
+          assert(bar.cache.data.runner);
+          assert.equal(bar.cache.data.runner.name, 'verb');
+          cb();
+        });
       });
     });
 
     it('should extend to a nested sub-generator', function(cb) {
+      app.use(data);
+
       app.generator('foo', function(foo) {
-        foo.use(data);
-        cb();
+        foo.generator('bar', function(bar) {
+          bar.generator('baz', function(baz) {
+            assert(baz.cache.data.runner);
+            assert.equal(baz.cache.data.runner.name, 'verb');
+            cb();
+          });
+        });
       });
     });
   });
 
   describe('context', function() {
-    it('should add data to the context before rendering', function(cb) {
-      app.generator('foo', function(app) {
-        app.extendWith(data);
-        app.engine('*', require('engine-base'));
-        app.create('files');
+    beforeEach(function(cb) {
+      app.use(data);
+      cb();
+    });
 
-        app.preWrite(/./, function(file, next) {
-          // console.log(file.data);
-          next();
-        });
+    it('should add data to the context', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        var ctx = app.cache.data;
+        assert.equal(ctx.year, new Date().getFullYear());
+        assert.equal(ctx.license, 'Released under the [MIT license](https://github.com/doowb/test-project/blob/master/LICENSE).');
+        assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
+        assert.equal(ctx.repository, 'doowb/test-project');
+        assert.equal(ctx.username, 'jonschlinkert');
+        assert.equal(ctx.owner, 'doowb');
+        cb();
+      });
+    });
 
-        app.task('render', function(cb) {
-          app.file('foo.md', {content: 'this is foo'});
+    it('should get runner', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.runner.homepage, 'https://github.com/verbose/verb');
+        cb();
+      });
+    });
 
-          app.toStream('files')
-            .pipe(app.renderFile('*'))
-            .pipe(app.dest('test/actual'))
-            .on('end', cb);
-        });
+    it('should set runner', function(cb) {
+      app.data('runner', {
+        name: 'xyz',
+        homepage: 'https://github.com/abc/xyz'
+      });
 
-        app.build('render', function(err) {
-          if (err) return cb(err);
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.runner.name, 'xyz');
+        assert.equal(app.cache.data.runner.homepage, 'https://github.com/abc/xyz');
+        cb();
+      });
+    });
 
-          cb();
-        });
+    it('should set alias', function(cb) {
+      app.data('alias', 'xyz');
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.alias, 'xyz');
+        cb();
+      });
+    });
+
+    it('should support a custom `options.toAlias` function', function(cb) {
+      app.option('toAlias', function() {
+        return 'blah';
+      });
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.alias, 'blah');
+        cb();
+      });
+    });
+  });
+
+  describe('twitter (username)', function() {
+    beforeEach(function(cb) {
+      app.use(data);
+      cb();
+    });
+
+    it('should get `twitter` value from username', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.twitter, 'jonschlinkert');
+        cb();
+      });
+    });
+  });
+
+  describe('twitter (data)', function() {
+    beforeEach(function(cb) {
+      app.data({twitter: 'doowb'})
+      app.use(data);
+      cb();
+    });
+
+    it('should use `twitter` value on app.cache.data', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.twitter, 'doowb');
+        cb();
+      });
+    });
+
+    it('should support updating `twitter` value on `app.cache.data`', function(cb) {
+      app.data({twitter: 'slsllsl'});
+
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.twitter, 'slsllsl');
+        cb();
+      });
+    });
+  });
+
+  describe('twitter (options)', function() {
+    beforeEach(function(cb) {
+      app.option('twitter', 'foobar');
+      app.use(data);
+      cb();
+    });
+
+    it('should support passing `twitter` value on options', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.twitter, 'foobar');
+        cb();
+      });
+    });
+  });
+
+  describe('license', function() {
+    beforeEach(function(cb) {
+      app.option('license', 'Released under the foo License');
+      app.use(data);
+      cb();
+    });
+
+    it('should support passing `license` value on options', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.license, 'Released under the foo License');
+        cb();
+      });
+    });
+
+    it('should support passing `twitter` value on `app.cache.data`', function(cb) {
+      app.data({license: 'Released under the bar License'});
+
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.license, 'Released under the bar License');
+        cb();
+      });
+    });
+  });
+
+  describe('context (no license)', function() {
+    var cwd = process.cwd();
+    beforeEach(function(cb) {
+      process.chdir(path.resolve(__dirname, 'fixtures/project-no-license'));
+      app.use(data);
+      cb();
+    });
+
+    afterEach(function(cb) {
+      process.chdir(cwd);
+      cb();
+    });
+
+    it('should add data to the context', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        var ctx = app.cache.data;
+        assert.equal(ctx.year, new Date().getFullYear());
+        assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
+        assert.equal(ctx.license, 'Released under the MIT license.');
+        assert.equal(ctx.repository, 'doowb/test-project');
+        assert.equal(ctx.username, 'jonschlinkert');
+        assert.equal(ctx.owner, 'doowb');
+        cb();
+      });
+    });
+
+    it('should support a custom `options.toAlias` function', function(cb) {
+      app.option('toAlias', function() {
+        return 'blah';
+      });
+
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.alias, 'blah');
+        cb();
       });
     });
   });
 });
+
+function render(app, cb) {
+  if (!app.tests) {
+    app.engine('*', require('engine-base'));
+    app.create('tests');
+    app.test('foo.md', {content: 'this is foo'});
+  }
+  app.toStream('tests')
+    .pipe(app.renderFile('*'))
+    .on('error', cb)
+    .pipe(app.dest('test/actual'))
+    .on('error', cb)
+    .on('end', cb);
+}
