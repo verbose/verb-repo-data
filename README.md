@@ -15,7 +15,7 @@ $ npm install verb-repo-data --save
 ```js
 var data = require('verb-repo-data');
 
-// register the plugin
+// use the plugin
 app.use(data());
 ```
 
