@@ -1,66 +1,59 @@
 'use strict';
 
+var path = require('path');
 var utils = require('./utils');
 
 module.exports = function plugin(app, base) {
   if (!isValidInstance(app)) return;
 
+  var config = new utils.Expand(app.options)
+    .field('username', 'string', {
+      normalize: function(val, key, config, schema) {
+        if (utils.isString(val)) return val;
+        if (typeof val === 'undefined') {
+          schema.update('author', config);
+          config.author = config.author || {};
+        }
+
+        val = config[key] = utils.repo.username(config, schema.options);
+        if (utils.isString(val)) {
+          config.author.username = val;
+          return val;
+        }
+      }
+    })
+    .field('twitter', 'string', {
+      normalize: function(val, key, config, schema) {
+        if (utils.isString(val)) return val;
+        if (typeof val === 'undefined') {
+          schema.update('username', config);
+        }
+        config.author = config.author || {};
+        val = schema.options.twitter || config.author.username;
+        if (utils.isString(val)) {
+          config.author.twitter = val;
+          return val;
+        }
+      }
+    })
+    .field('license', 'string', {
+      normalize: function(val, key, config, schema) {
+        return formatLicense(app, val, config);
+      }
+    })
+
   /**
    * Common data
    */
 
+  app.data({cwd: app.cwd});
   app.data({year: new Date().getFullYear()});
-  app.data({owner: app.data.owner || owner(app, app.pkg.data)});
-  app.data({cwd: app.options.cwd || app.cwd});
   app.data(app.pkg.data);
-  app.cache.data.author = expandPerson(app.data('author'), app.cwd);
+  app.data(config.expand(app.cache.data));
 
-  /**
-   * Middleware
-   */
-
-  app.postCompile(/./, function(file, next) {
-    updateContext(app, base, file, next);
-  });
-
-  /**
-   * `alias` setter
-   */
-
-  setAlias(base);
+  setAlias(app);
   return plugin;
 };
-
-/**
- * Merge data onto the context from:
- * - the `base` instance cache
- * - answers to prompts
- * - global defaults
- */
-
-function updateContext(app, base, file, next) {
-  function merge(data, obj) {
-    data = utils.merge({}, utils.omitEmpty(obj), data);
-    utils.merge(data, data.project);
-    return data;
-  }
-
-  var data = app.cache.data;
-  if (!utils.isObject(app.data('author'))) {
-    var author = base.globals.get('author');
-    if (utils.isObject(author)) {
-      app.data({author: author});
-    }
-  }
-
-  data = merge(data, app.questions.answers);
-  data = merge(data, base.cache.data);
-  data = merge(data, app.cache.data);
-
-  app.cache._context = data;
-  file.data = merge(data, file.data);
-  next();
-}
 
 /**
  * Create the `alias` variable for templates
@@ -74,70 +67,40 @@ function setAlias(base) {
       alias = val;
     },
     get: function() {
-      if (alias) {
-        return alias;
+      if (alias) return alias;
+      if (typeof base.options.toAlias === 'function') {
+        alias = base.options.toAlias(this.name);
+      } else {
+        alias = utils.camelcase(base.toAlias(this.name));
       }
-      alias = camelcase(base.toAlias(base.project || path.basename(path.dirname(base.cwd))));
       return alias;
     }
   });
 }
 
 /**
- * Create `owner` variable for templates context
+ * Create a license statement from `license` in from package.json
+ * @param {Object} `app`
+ * @param {Object} `val` License string in package.json
+ * @param {Object} `config` package.json config object
  */
 
-function owner(base, pkg) {
-  var repo = pkg.repository;
-  if (utils.isObject(repo)) {
-    repo = repo.url;
+function formatLicense(app, val, config) {
+  var license = app.options.license || app.data.license || 'MIT';
+  if (/^(Released|Licensed)/.test(license)) {
+    return license;
   }
-  if (typeof repo === 'string') {
-    var obj = utils.parseGithubUrl(repo);
-    return obj.owner;
-  }
-  return base.data('author.username');
-}
 
-/**
- * Camelcase the given string
- */
+  var fp = path.resolve(app.cwd, 'LICENSE');
+  var statement = '';
 
-function camelcase(str) {
-  if (str.length === 1) {
-    return str.toLowerCase();
+  if (utils.exists(fp)) {
+    var url = utils.repo.file(config, 'LICENSE');
+    license = '[' + license + ' license](' + url + ').';
+  } else {
+    license += ' license.';
   }
-  str = str.replace(/^[\W_]+|[\W_]+$/g, '').toLowerCase();
-  return str.replace(/[\W_]+(\w|$)/g, function(_, ch) {
-    return ch.toUpperCase();
-  });
-}
-
-/**
- * Expand person strings into objects
- */
-
-function expandPerson(str, cwd) {
-  var person = {};
-  if (Array.isArray(str)) {
-    str.forEach(function(val) {
-      person = utils.merge({}, person, expandPerson(val, cwd));
-    });
-  } else if (typeof str === 'string') {
-    person = utils.merge({}, person, utils.parseAuthor(str));
-  } else if (str && typeof str === 'object') {
-    person = utils.merge({}, person, str);
-  }
-  if (!person.username && person.url && /github\.com/.test(person.url)) {
-    person.username = person.url.slice(person.url.lastIndexOf('/') + 1);
-  }
-  if (!person.username) {
-    person.username = utils.gitUserName(cwd);
-  }
-  if (!person.twitter && person.username) {
-    person.twitter = person.username;
-  }
-  return utils.omitEmpty(person);
+  return 'Released under the ' + license;
 }
 
 /**
@@ -152,35 +115,4 @@ function isValidInstance(app) {
     return false;
   }
   return true;
-}
-
-
-/**
- * Add "Released under..." statement to license from
- * package.json.
- *
- * @param {Object} `verb`
- * @return {undefined}
- */
-
-function formatLicense(val, config, options) {
-  var opts = utils.extend({cwd: process.cwd()}, options);
-
-  var license = val || 'MIT';
-  if (/Released/.test(license)) {
-    return { license: license };
-  }
-
-  var fp = path.resolve(opts.cwd, 'LICENSE');
-  var statement = '';
-
-  if (fs.existsSync(fp)) {
-    var url = utils.repositoryFile(config.repository, 'LICENSE');
-    license = '[' + license + ' license](' + url + ').';
-  } else {
-    license += ' license.';
-  }
-  return {
-    license: 'Released under the ' + license
-  };
 }
