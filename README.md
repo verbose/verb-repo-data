@@ -1,4 +1,4 @@
-# verb-repo-data [![NPM version](https://img.shields.io/npm/v/verb-repo-data.svg?style=flat)](https://www.npmjs.com/package/verb-repo-data) [![NPM downloads](https://img.shields.io/npm/dm/verb-repo-data.svg?style=flat)](https://npmjs.org/package/verb-repo-data) [![Build Status](https://img.shields.io/travis/jonschlinkert/verb-repo-data.svg?style=flat)](https://travis-ci.org/jonschlinkert/verb-repo-data)
+# verb-repo-data [![NPM version](https://img.shields.io/npm/v/verb-repo-data.svg?style=flat)](https://www.npmjs.com/package/verb-repo-data) [![NPM downloads](https://img.shields.io/npm/dm/verb-repo-data.svg?style=flat)](https://npmjs.org/package/verb-repo-data) [![Build Status](https://img.shields.io/travis/verbose/verb-repo-data.svg?style=flat)](https://travis-ci.org/verbose/verb-repo-data)
 
 > Verb plugin that repository and package.json data to the context for rendering templates.
 
@@ -64,7 +64,7 @@ $ npm install -d && npm test
 ## License
 
 Copyright © 2016, [Jon Schlinkert](https://github.com/jonschlinkert).
-Released under the [MIT license](https://github.com/jonschlinkert/verb-repo-data/blob/master/LICENSE).
+Released under the [MIT license](https://github.com/verbose/verb-repo-data/blob/master/LICENSE).
 
 ***
 
