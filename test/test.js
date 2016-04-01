@@ -172,10 +172,28 @@ describe('verb-data', function() {
       });
     });
 
+    it('should set varname', function(cb) {
+      app.data('varname', 'xyz');
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.varname, 'xyz');
+        cb();
+      });
+    });
+
+    it('should get varname', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.varname, 'testProject');
+        cb();
+      });
+    });
+
     it('should support a custom `options.toAlias` function', function(cb) {
       app.option('toAlias', function() {
         return 'blah';
       });
+
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.alias, 'blah');

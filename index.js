@@ -41,6 +41,18 @@ module.exports = function plugin(app, base) {
         return formatLicense(app, val, config);
       }
     })
+    .field('varname', 'string', {
+      normalize: function(val, key, config, schema) {
+        if (utils.isString(val)) {
+          return val;
+        }
+        var name = config.name;
+        if (typeof schema.options.varname === 'function') {
+          return schema.option.varname(name, config);
+        }
+        return utils.namify(name);
+      }
+    });
 
   /**
    * Common data
@@ -50,8 +62,7 @@ module.exports = function plugin(app, base) {
   app.data({year: new Date().getFullYear()});
   app.data(app.pkg.data);
   app.data(config.expand(app.cache.data));
-
-  setAlias(app);
+  setAlias(app.cache.data, app.options);
   return plugin;
 };
 
@@ -59,20 +70,22 @@ module.exports = function plugin(app, base) {
  * Create the `alias` variable for templates
  */
 
-function setAlias(base) {
+function setAlias(data, options) {
   var alias = null;
-  Object.defineProperty(base.cache.data, 'alias', {
+  Object.defineProperty(data, 'alias', {
     configurable: true,
     set: function(val) {
       alias = val;
     },
     get: function() {
       if (alias) return alias;
-      if (typeof base.options.toAlias === 'function') {
-        alias = base.options.toAlias(this.name);
-      } else {
-        alias = utils.camelcase(base.toAlias(this.name));
+
+      var toAlias = options.toAlias;
+      if (typeof toAlias === 'function') {
+        return toAlias.call(data, data.name);
       }
+      var val = data.name.slice(data.name.lastIndexOf('-') + 1);
+      alias = utils.camelcase(val);
       return alias;
     }
   });
@@ -107,7 +120,11 @@ function formatLicense(app, val, config) {
  * Validate instance
  */
 
-function isValidInstance(app) {
+function isValidInstance(app, fn) {
+  fn = fn || app.options.validatePlugin;
+  if (typeof fn === 'function' && !fn(app)) {
+    return false;
+  }
   if (!app.isApp && !app.isGenerator) {
     return false;
   }
@@ -116,3 +133,4 @@ function isValidInstance(app) {
   }
   return true;
 }
+

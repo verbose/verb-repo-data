@@ -12,8 +12,13 @@ require = utils;
 require('camel-case', 'camelcase');
 require('expand-pkg', 'Expand');
 require('isobject', 'isObject');
+require('namify');
 require('repo-utils', 'repo');
 require = fn;
+
+/**
+ * Returns true if `str` is a string with length greater than zero
+ */
 
 utils.isString = function(str) {
   return str && typeof str === 'string';
