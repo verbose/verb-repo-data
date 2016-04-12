@@ -74,6 +74,7 @@ function setAlias(data, options) {
   var alias = null;
   Object.defineProperty(data, 'alias', {
     configurable: true,
+    enumerable: true,
     set: function(val) {
       alias = val;
     },
