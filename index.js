@@ -6,7 +6,19 @@ var utils = require('./utils');
 module.exports = function plugin(app, base) {
   if (!isValidInstance(app)) return;
 
-  var config = new utils.Expand(app.options)
+  var config = new utils.Expand(app.options);
+  var author = config.schema.get('author');
+
+  config
+    .field('author', author.types, {
+      normalize: function(val, key, config, schema) {
+        val = author.normalize.apply(author, arguments);
+        if (typeof val === 'undefined') {
+          val = config[key] = app.globals.get('author');
+        }
+        return val;
+      }
+    })
     .field('username', 'string', {
       normalize: function(val, key, config, schema) {
         if (utils.isString(val)) return val;
@@ -74,7 +86,6 @@ function setAlias(data, options) {
   var alias = null;
   Object.defineProperty(data, 'alias', {
     configurable: true,
-    enumerable: true,
     set: function(val) {
       alias = val;
     },
@@ -106,8 +117,6 @@ function formatLicense(app, val, config) {
   }
 
   var fp = path.resolve(app.cwd, 'LICENSE');
-  var statement = '';
-
   if (utils.exists(fp)) {
     var url = utils.repo.file(config, 'LICENSE');
     license = '[' + license + ' license](' + url + ').';

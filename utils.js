@@ -11,7 +11,6 @@ require = utils;
 
 require('camel-case', 'camelcase');
 require('expand-pkg', 'Expand');
-require('isobject', 'isObject');
 require('namify');
 require('repo-utils', 'repo');
 require = fn;
