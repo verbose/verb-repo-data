@@ -190,9 +190,11 @@ describe('verb-data', function() {
     });
 
     it('should support a custom `options.toAlias` function', function(cb) {
-      app.option('toAlias', function() {
+      app = verb();
+      app.option('toAlias', function toAlias() {
         return 'blah';
       });
+      app.use(data);
 
       render(app, function(err) {
         if (err) return cb(err);
@@ -313,9 +315,11 @@ describe('verb-data', function() {
     });
 
     it('should support a custom `options.toAlias` function', function(cb) {
-      app.option('toAlias', function() {
+      app = verb();
+      app.option('toAlias', function toAlias() {
         return 'blah';
       });
+      app.use(data);
 
       render(app, function(err) {
         if (err) return cb(err);

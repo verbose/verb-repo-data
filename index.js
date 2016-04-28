@@ -6,19 +6,7 @@ var utils = require('./utils');
 module.exports = function plugin(app, base) {
   if (!isValidInstance(app)) return;
 
-  var config = new utils.Expand(app.options);
-  var author = config.schema.get('author');
-
-  config
-    .field('author', author.types, {
-      normalize: function(val, key, config, schema) {
-        val = author.normalize.apply(author, arguments);
-        if (typeof val === 'undefined') {
-          val = config[key] = app.globals.get('author');
-        }
-        return val;
-      }
-    })
+  var config = new utils.Expand(app.options)
     .field('username', 'string', {
       normalize: function(val, key, config, schema) {
         if (utils.isString(val)) return val;
@@ -53,6 +41,19 @@ module.exports = function plugin(app, base) {
         return formatLicense(app, val, config);
       }
     })
+    .field('alias', 'string', {
+      normalize: function(val, key, config, schema) {
+        var data = app.cache.data || {};
+        var toAlias = schema.options.toAlias;
+        if (typeof toAlias === 'function') {
+          val = config[key] = toAlias.call(data, data.name);
+          return val;
+        }
+        var val = data.name.slice(data.name.lastIndexOf('-') + 1);
+        alias = utils.camelcase(val);
+        return alias;
+      }
+    })
     .field('varname', 'string', {
       normalize: function(val, key, config, schema) {
         if (utils.isString(val)) {
@@ -74,34 +75,8 @@ module.exports = function plugin(app, base) {
   app.data({year: new Date().getFullYear()});
   app.data(app.pkg.data);
   app.data(config.expand(app.cache.data));
-  setAlias(app.cache.data, app.options);
   return plugin;
 };
-
-/**
- * Create the `alias` variable for templates
- */
-
-function setAlias(data, options) {
-  var alias = null;
-  Object.defineProperty(data, 'alias', {
-    configurable: true,
-    set: function(val) {
-      alias = val;
-    },
-    get: function() {
-      if (alias) return alias;
-
-      var toAlias = options.toAlias;
-      if (typeof toAlias === 'function') {
-        return toAlias.call(data, data.name);
-      }
-      var val = data.name.slice(data.name.lastIndexOf('-') + 1);
-      alias = utils.camelcase(val);
-      return alias;
-    }
-  });
-}
 
 /**
  * Create a license statement from `license` in from package.json
@@ -117,6 +92,8 @@ function formatLicense(app, val, config) {
   }
 
   var fp = path.resolve(app.cwd, 'LICENSE');
+  var statement = '';
+
   if (utils.exists(fp)) {
     var url = utils.repo.file(config, 'LICENSE');
     license = '[' + license + ' license](' + url + ').';
