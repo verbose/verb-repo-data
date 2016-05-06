@@ -49,9 +49,8 @@ module.exports = function plugin(app, base) {
           val = config[key] = toAlias.call(data, data.name);
           return val;
         }
-        var val = data.name.slice(data.name.lastIndexOf('-') + 1);
-        alias = utils.camelcase(val);
-        return alias;
+        var seg = data.name.slice(data.name.lastIndexOf('-') + 1);
+        return utils.camelcase(seg);
       }
     })
     .field('varname', 'string', {
@@ -92,8 +91,6 @@ function formatLicense(app, val, config) {
   }
 
   var fp = path.resolve(app.cwd, 'LICENSE');
-  var statement = '';
-
   if (utils.exists(fp)) {
     var url = utils.repo.file(config, 'LICENSE');
     license = '[' + license + ' license](' + url + ').';
