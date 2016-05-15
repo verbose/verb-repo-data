@@ -4,8 +4,16 @@ var path = require('path');
 var utils = require('./utils');
 
 module.exports = function plugin(app, base) {
-  if (!isValidInstance(app)) return;
+  if (!isValidInstance(this)) return;
+  this.cache.data.project = this.cache.data.project || {};
+  this.define('updateData', function() {
+    data(this);
+  });
+  data(this);
+  return plugin;
+};
 
+function data(app) {
   var config = new utils.Expand(app.options)
     .field('username', 'string', {
       normalize: function(val, key, config, schema) {
@@ -46,23 +54,31 @@ module.exports = function plugin(app, base) {
         var data = app.cache.data || {};
         var toAlias = schema.options.toAlias;
         if (typeof toAlias === 'function') {
-          val = config[key] = toAlias.call(data, data.name);
-          return val;
+          val = toAlias.call(data, data.name);
+        } else {
+          val = data.name.slice(data.name.lastIndexOf('-') + 1);
+          val = utils.camelcase(val);
         }
-        var seg = data.name.slice(data.name.lastIndexOf('-') + 1);
-        return utils.camelcase(seg);
+        config[key] = val;
+        set(app, key, val);
+        return val;
       }
     })
     .field('varname', 'string', {
       normalize: function(val, key, config, schema) {
         if (utils.isString(val)) {
+          set(app, key, val);
           return val;
         }
         var name = config.name;
         if (typeof schema.options.varname === 'function') {
-          return schema.option.varname(name, config);
+          config[key] = schema.option.varname(name, config);
+        } else {
+          config[key] = utils.namify(name);
         }
-        return utils.namify(name);
+        val = app.cache.data[key] = config[key];
+        set(app, key, val);
+        return val;
       }
     });
 
@@ -74,19 +90,21 @@ module.exports = function plugin(app, base) {
   app.data({year: new Date().getFullYear()});
   app.data(app.pkg.data);
   app.data(config.expand(app.cache.data));
-  var project = {};
+  set(app, 'name');
+  set(app, 'varname');
+  set(app, 'description');
+  set(app, 'alias');
+  set(app, 'owner');
+}
 
-  Object.defineProperty(app.cache.data, 'project', {
-    set: function(val) {
-      utils.merge(project, val);
-    },
-    get: function() {
-      utils.merge(project, app.cache.data);
-      return project;
-    }
-  });
-  return plugin;
-};
+function set(app, prop, val) {
+  var data = app.cache.data.project;
+  if (typeof val !== 'undefined') {
+    data[prop] = val;
+  } else if (typeof app.cache.data[prop] !== 'undefined') {
+    data[prop] = app.cache.data[prop];
+  }
+}
 
 /**
  * Create a license statement from `license` in from package.json

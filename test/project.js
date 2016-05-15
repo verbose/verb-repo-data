@@ -41,7 +41,7 @@ describe('`project` variables', function() {
 
   describe('project.varname', function() {
     it('should set project.varname', function(cb) {
-      app.data('varname', 'xyz');
+      app.data('project.varname', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.varname, 'xyz');
@@ -50,7 +50,7 @@ describe('`project` variables', function() {
     });
 
     it('should set varname', function(cb) {
-      app.data('varname', 'xyz');
+      app.data('project.varname', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.varname, 'xyz');
@@ -69,7 +69,7 @@ describe('`project` variables', function() {
 
   describe('project.alias', function() {
     it('should set project.alias', function(cb) {
-      app.data('alias', 'xyz');
+      app.data('project.alias', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.alias, 'xyz');
@@ -78,7 +78,7 @@ describe('`project` variables', function() {
     });
 
     it('should set alias', function(cb) {
-      app.data('alias', 'xyz');
+      app.data('project.alias', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.alias, 'xyz');
@@ -97,7 +97,7 @@ describe('`project` variables', function() {
 
   describe('project.name', function() {
     it('should set project.name', function(cb) {
-      app.data('name', 'xyz');
+      app.data('project.name', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.name, 'xyz');
@@ -106,7 +106,7 @@ describe('`project` variables', function() {
     });
 
     it('should set name', function(cb) {
-      app.data('name', 'xyz');
+      app.data('project.name', 'xyz');
       render(app, function(err) {
         if (err) return cb(err);
         assert.equal(app.cache.data.project.name, 'xyz');
