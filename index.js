@@ -74,6 +74,17 @@ module.exports = function plugin(app, base) {
   app.data({year: new Date().getFullYear()});
   app.data(app.pkg.data);
   app.data(config.expand(app.cache.data));
+  var project = {};
+
+  Object.defineProperty(app.cache.data, 'project', {
+    set: function(val) {
+      utils.merge(project, val);
+    },
+    get: function() {
+      utils.merge(project, app.cache.data);
+      return project;
+    }
+  });
   return plugin;
 };
 
@@ -112,7 +123,10 @@ function isValidInstance(app, fn) {
   if (!app.isApp && !app.isGenerator) {
     return false;
   }
-  if (app.isRegistered('verb-data')) {
+  if (typeof app.data !== 'function') {
+    throw new Error('expected the base-data plugin to be registered');
+  }
+  if (app.isRegistered('verb-repo-data')) {
     return false;
   }
   return true;

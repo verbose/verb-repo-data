@@ -29,7 +29,7 @@ describe('verb-data (empty)', function() {
     it('should only register the plugin once', function(cb) {
       var count = 0;
       app.on('plugin', function(name) {
-        if (name === 'verb-data') {
+        if (name === 'verb-repo-data') {
           count++;
         }
       });

@@ -11,6 +11,7 @@ require = utils;
 
 require('camel-case', 'camelcase');
 require('expand-pkg', 'Expand');
+require('mixin-deep', 'merge');
 require('namify');
 require('repo-utils', 'repo');
 require = fn;
