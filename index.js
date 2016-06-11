@@ -4,86 +4,19 @@ var path = require('path');
 var utils = require('./utils');
 
 module.exports = function plugin(app, base) {
-  if (!isValidInstance(this)) return;
+  if (!utils.isValid(app, 'verb-repo-data')) return;
+
+  this.use(utils.data());
   this.cache.data.project = this.cache.data.project || {};
-  this.define('updateData', function() {
-    data(this);
-  });
-  data(this);
-  return plugin;
-};
-
-function data(app) {
-  var config = new utils.Expand(app.options)
-    .field('username', 'string', {
-      normalize: function(val, key, config, schema) {
-        if (utils.isString(val)) return val;
-        if (typeof val === 'undefined') {
-          schema.update('author', config);
-          config.author = config.author || {};
-        }
-
-        val = config[key] = utils.repo.username(config, schema.options);
-        if (utils.isString(val)) {
-          config.author.username = val;
-          return val;
-        }
-      }
-    })
-    .field('twitter', 'string', {
-      normalize: function(val, key, config, schema) {
-        if (utils.isString(val)) return val;
-        if (typeof val === 'undefined') {
-          schema.update('username', config);
-        }
-        config.author = config.author || {};
-        val = schema.options.twitter || config.author.username;
-        if (utils.isString(val)) {
-          config.author.twitter = val;
-          return val;
-        }
-      }
-    })
-    .field('license', 'string', {
-      normalize: function(val, key, config, schema) {
-        return formatLicense(app, val, config);
-      }
-    })
-    .field('alias', 'string', {
-      normalize: function(val, key, config, schema) {
-        var data = app.cache.data || {};
-        var toAlias = schema.options.toAlias;
-        if (typeof toAlias === 'function') {
-          val = toAlias.call(data, data.name);
-        } else {
-          val = data.name.slice(data.name.lastIndexOf('-') + 1);
-          val = utils.camelcase(val);
-        }
-        config[key] = val;
-        set(app, key, val);
-        return val;
-      }
-    })
-    .field('varname', 'string', {
-      normalize: function(val, key, config, schema) {
-        if (utils.isString(val)) {
-          set(app, key, val);
-          return val;
-        }
-        var name = config.name;
-        if (typeof schema.options.varname === 'function') {
-          config[key] = schema.option.varname(name, config);
-        } else {
-          config[key] = utils.namify(name);
-        }
-        val = app.cache.data[key] = config[key];
-        set(app, key, val);
-        return val;
-      }
-    });
 
   /**
-   * Common data
+   * "Expand" fields using `expand-pkg`
+   */
+
+  var config = expander(app);
+
+  /**
+   * Update and normalize data
    */
 
   app.data({cwd: app.cwd});
@@ -95,7 +28,13 @@ function data(app) {
   set(app, 'description');
   set(app, 'alias');
   set(app, 'owner');
-}
+};
+
+/**
+ * Set data values on the `app.cache.data.project` object, which is
+ * merged onto the context at render time and is available in templats
+ * as `project`.
+ */
 
 function set(app, prop, val) {
   var data = app.cache.data.project;
@@ -104,6 +43,87 @@ function set(app, prop, val) {
   } else if (typeof app.cache.data[prop] !== 'undefined') {
     data[prop] = app.cache.data[prop];
   }
+}
+
+/**
+ * Add custom fields to `expand-package`
+ */
+
+function expander(app) {
+  var config = new utils.Expand(app.options);
+
+  config.field('username', 'string', {
+    normalize: function(val, key, config, schema) {
+      if (utils.isString(val)) return val;
+      if (typeof val === 'undefined') {
+        schema.update('author', config);
+        config.author = config.author || {};
+      }
+
+      val = config[key] = utils.repo.username(config, schema.options);
+      if (utils.isString(val)) {
+        config.author.username = val;
+        return val;
+      }
+    }
+  });
+
+  config.field('twitter', 'string', {
+    normalize: function(val, key, config, schema) {
+      if (utils.isString(val)) return val;
+      if (typeof val === 'undefined') {
+        schema.update('username', config);
+      }
+      config.author = config.author || {};
+      val = schema.options.twitter || config.author.username;
+      if (utils.isString(val)) {
+        config.author.twitter = val;
+        return val;
+      }
+    }
+  });
+
+  config.field('license', 'string', {
+    normalize: function(val, key, config, schema) {
+      return formatLicense(app, val, config);
+    }
+  });
+
+  config.field('alias', 'string', {
+    normalize: function(val, key, config, schema) {
+      var data = app.cache.data || {};
+      var toAlias = schema.options.toAlias;
+      if (typeof toAlias === 'function') {
+        val = toAlias.call(data, data.name);
+      } else {
+        val = data.name.slice(data.name.lastIndexOf('-') + 1);
+        val = utils.camelcase(val);
+      }
+      config[key] = val;
+      set(app, key, val);
+      return val;
+    }
+  });
+
+  config.field('varname', 'string', {
+    normalize: function(val, key, config, schema) {
+      if (utils.isString(val)) {
+        set(app, key, val);
+        return val;
+      }
+      var name = config.name;
+      if (typeof schema.options.varname === 'function') {
+        config[key] = schema.option.varname(name, config);
+      } else {
+        config[key] = utils.namify(name);
+      }
+      val = app.cache.data[key] = config[key];
+      set(app, key, val);
+      return val;
+    }
+  });
+
+  return config;
 }
 
 /**
@@ -128,25 +148,3 @@ function formatLicense(app, val, config) {
   }
   return 'Released under the ' + license;
 }
-
-/**
- * Validate instance
- */
-
-function isValidInstance(app, fn) {
-  fn = fn || app.options.validatePlugin;
-  if (typeof fn === 'function' && !fn(app)) {
-    return false;
-  }
-  if (!app.isApp && !app.isGenerator) {
-    return false;
-  }
-  if (typeof app.data !== 'function') {
-    throw new Error('expected the base-data plugin to be registered');
-  }
-  if (app.isRegistered('verb-repo-data')) {
-    return false;
-  }
-  return true;
-}
-

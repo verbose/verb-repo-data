@@ -1,6 +1,5 @@
 'use strict';
 
-var fs = require('fs');
 var utils = require('lazy-cache')(require);
 var fn = require;
 require = utils;
@@ -9,7 +8,10 @@ require = utils;
  * Lazily required module dependencies
  */
 
+require('base-data', 'data');
 require('camel-case', 'camelcase');
+require('fs-exists-sync', 'exists');
+require('is-valid-app', 'isValid');
 require('expand-pkg', 'Expand');
 require('mixin-deep', 'merge');
 require('namify');
@@ -20,20 +22,8 @@ require = fn;
  * Returns true if `str` is a string with length greater than zero
  */
 
-utils.isString = function(str) {
-  return str && typeof str === 'string';
-};
-
-/**
- * Return true if `fp` exists on the file system
- */
-
-utils.exists = function(fp) {
-  try {
-    fs.statSync(fp);
-    return true;
-  } catch (err) {};
-  return false;
+utils.isString = function(val) {
+  return val && typeof val === 'string';
 };
 
 /**
