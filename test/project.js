@@ -122,6 +122,34 @@ describe('`project` variables', function() {
       });
     });
   });
+
+  describe('project.license', function() {
+    it('should set license', function(cb) {
+      app.data('license', 'xyz');
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.license, 'xyz');
+        cb();
+      });
+    });
+
+    it('should set `project` license', function(cb) {
+      app.data('project.license', 'xyz');
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.project.license, 'xyz');
+        cb();
+      });
+    });
+
+    it('should get license', function(cb) {
+      render(app, function(err) {
+        if (err) return cb(err);
+        assert.equal(app.cache.data.license, 'Released under the [MIT license](LICENSE).');
+        cb();
+      });
+    });
+  });
 });
 
 function render(app, cb) {

@@ -132,11 +132,11 @@ describe('verb-data', function() {
         if (err) return cb(err);
         var ctx = app.cache.data;
         assert.equal(ctx.year, new Date().getFullYear());
-        assert.equal(ctx.license, 'Released under the [MIT license](https://github.com/doowb/test-project/blob/master/LICENSE).');
+        assert.equal(ctx.license, 'Released under the [MIT license](LICENSE).');
         assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
-        assert.equal(ctx.repository, 'doowb/test-project');
+        assert.equal(ctx.repository, 'jonschlinkert/test-project');
         assert.equal(ctx.username, 'jonschlinkert');
-        assert.equal(ctx.owner, 'doowb');
+        assert.equal(ctx.owner, 'jonschlinkert');
         cb();
       });
     });
@@ -307,9 +307,9 @@ describe('verb-data', function() {
         assert.equal(ctx.year, new Date().getFullYear());
         assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
         assert.equal(ctx.license, 'Released under the MIT license.');
-        assert.equal(ctx.repository, 'doowb/test-project');
+        assert.equal(ctx.repository, 'jonschlinkert/test-project');
         assert.equal(ctx.username, 'jonschlinkert');
-        assert.equal(ctx.owner, 'doowb');
+        assert.equal(ctx.owner, 'jonschlinkert');
         cb();
       });
     });
