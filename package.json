@@ -42,6 +42,7 @@
     "gulp-istanbul": "^1.0.0",
     "gulp-mocha": "^2.2.0",
     "gulp-unused": "^0.1.2",
+    "mkdirp": "^0.5.1",
     "mocha": "^2.5.3",
     "verb": "https://github.com/verbose/verb#dev"
   },

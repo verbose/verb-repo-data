@@ -5,6 +5,7 @@ var path = require('path');
 var assert = require('assert');
 var gitty = require('gitty');
 var verb = require('verb');
+var mkdirp = require('mkdirp');
 var del = require('delete');
 var data = require('..');
 var repo, app;
@@ -13,8 +14,12 @@ var project = path.resolve(__dirname, 'fixtures/project-empty');
 var cwd = process.cwd();
 
 describe('verb-data (empty)', function() {
-  before(function() {
-    process.chdir(project);
+  before(function(cb) {
+    mkdirp(project, function(err) {
+      if (err) return cb(err);
+      process.chdir(project);
+      cb();
+    })
   });
 
   after(function() {
