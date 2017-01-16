@@ -27,7 +27,7 @@ module.exports = function plugin(app, base) {
  */
 
 function formatLicense(app) {
-  var license = app.options.license || app.data.license || 'MIT';
+  var license = app.options.license || app.cache.data.license || 'MIT';
   if (/^(Released|Licensed)/.test(license)) {
     return license;
   }
