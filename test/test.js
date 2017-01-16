@@ -141,9 +141,12 @@ describe('verb-data', function() {
           return;
         }
 
-        assert.equal(ctx.repository, 'jonschlinkert/test-project');
+        // repository is 'doowb/test-project' in package.json
+        assert.equal(ctx.repository, 'doowb/test-project');
+        // author is 'jonschlinkert' in package.json
         assert.equal(ctx.username, 'jonschlinkert');
-        assert.equal(ctx.owner, 'jonschlinkert');
+        // owner comes from repository which is 'doowb/test-project' in package.json
+        assert.equal(ctx.owner, 'doowb');
         cb();
       });
     });
@@ -320,9 +323,12 @@ describe('verb-data', function() {
           return;
         }
 
-        assert.equal(ctx.repository, 'jonschlinkert/test-project');
+        // repository is 'doowb/test-project' in package.json
+        assert.equal(ctx.repository, 'doowb/test-project');
+        // author is 'jonschlinkert' in package.json
         assert.equal(ctx.username, 'jonschlinkert');
-        assert.equal(ctx.owner, 'jonschlinkert');
+        // owner comes from repository which is 'doowb/test-project' in package.json
+        assert.equal(ctx.owner, 'doowb');
         cb();
       });
     });
