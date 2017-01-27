@@ -145,7 +145,8 @@ describe('`project` variables', function() {
     it('should get license', function(cb) {
       render(app, function(err) {
         if (err) return cb(err);
-        assert.equal(app.cache.data.license, 'Released under the [MIT license](LICENSE).');
+        assert.equal(app.cache.data.license, 'MIT');
+        assert.equal(app.cache.data.licenseStatement, 'Released under the [MIT License](LICENSE).');
         cb();
       });
     });

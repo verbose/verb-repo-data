@@ -133,7 +133,8 @@ describe('verb-data', function() {
         if (err) return cb(err);
         var ctx = app.cache.data;
         assert.equal(ctx.year, new Date().getFullYear());
-        assert.equal(ctx.license, 'Released under the [MIT license](LICENSE).');
+        assert.equal(ctx.license, 'MIT');
+        assert.equal(ctx.licenseStatement, 'Released under the [MIT License](LICENSE).');
         assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
 
         if (isTravis) {
@@ -281,12 +282,13 @@ describe('verb-data', function() {
     it('should support passing `license` value on options', function(cb) {
       render(app, function(err) {
         if (err) return cb(err);
-        assert.equal(app.cache.data.license, 'Released under the foo License');
+        assert.equal(app.cache.data.license, 'MIT');
+        assert.equal(app.cache.data.licenseStatement, 'Released under the foo License');
         cb();
       });
     });
 
-    it('should support passing `twitter` value on `app.cache.data`', function(cb) {
+    it('should support passing `license` value on `app.cache.data`', function(cb) {
       app.data({license: 'Released under the bar License'});
 
       render(app, function(err) {
@@ -316,7 +318,8 @@ describe('verb-data', function() {
         var ctx = app.cache.data;
         assert.equal(ctx.year, new Date().getFullYear());
         assert.equal(ctx.author.url, 'https://github.com/jonschlinkert');
-        assert.equal(ctx.license, 'Released under the MIT license.');
+        assert.equal(ctx.license, 'MIT');
+        assert.equal(ctx.licenseStatement, 'Released under the MIT License.');
 
         if (isTravis) {
           cb();

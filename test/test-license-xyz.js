@@ -45,7 +45,8 @@ describe('verb-data (xyz license repository)', function() {
     });
 
     it('should update license on `cache.data`', function() {
-      assert.equal(app.cache.data.license, 'Released under the [XYZ license](LICENSE).');
+      assert.equal(app.cache.data.license, 'XYZ');
+      assert.equal(app.cache.data.licenseStatement, 'Released under the [XYZ License](LICENSE).');
     });
   });
 });
