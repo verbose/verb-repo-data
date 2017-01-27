@@ -1,10 +1,14 @@
 'use strict';
 
 var path = require('path');
+var clone = require('clone-deep');
 var utils = require('./utils');
 
-module.exports = function plugin(app, base) {
+module.exports = function plugin(app) {
   if (!utils.isValid(app, 'verb-repo-data')) return;
+
+  // clone user-defined data before extending
+  var data = clone(app.cache.data);
 
   /**
    * Plugins
@@ -16,7 +20,10 @@ module.exports = function plugin(app, base) {
    * Format license field for readmes
    */
 
-  app.data('license', formatLicense(app));
+  app.data('licenseStatement', formatLicense(app));
+
+  // restore user-defined data
+  app.data(data);
 };
 
 /**
@@ -35,9 +42,9 @@ function formatLicense(app) {
   var fp = path.resolve(app.cwd, 'LICENSE');
   if (utils.exists(fp)) {
     var url = utils.repo.file(app.cache.data.repo, 'LICENSE');
-    license = '[' + license + ' license](LICENSE).';
+    license = '[' + license + ' License](LICENSE).';
   } else {
-    license += ' license.';
+    license += ' License.';
   }
   return 'Released under the ' + license;
 }
